@@ -72,8 +72,8 @@ void initGPIO(void){
 	
 	//Attach interrupts to Buttons
 	//Write your logic here
-	//wiringPiISR(5, INT_EDGE_FALLING,hourInc);
-	//wiringPiISR(30, INT_EDGE_FALLING,minInc);
+	wiringPiISR(5, INT_EDGE_FALLING,hourInc);
+	wiringPiISR(30, INT_EDGE_FALLING,minInc);
 	
 	void my_interrupt_handler(void) {
 		unsigned long interrupt_time = millis();
@@ -82,7 +82,8 @@ void initGPIO(void){
 			wiringPiISR(5, INT_EDGE_FALLING,hourInc);
 			wiringPiISR(30, INT_EDGE_FALLING,minInc);
 		}
-	} 
+	}
+	my_interrupt_handler(); 
 	printf("BTNS done\n");
 	printf("Setup done\n");
 }
