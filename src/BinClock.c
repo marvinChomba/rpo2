@@ -5,8 +5,8 @@
  * Further Modified By: Mark Njoroge 
  *
  * 
- * <STUDNUM_1> <STUDNUM_2>
- * Date
+ * KHZLIN012 KNGMAR027
+ * 20/08/2021
 */
 
 #include <signal.h> //for catching signals
@@ -44,6 +44,29 @@ void CleanUp(int sig){
 
 }
 
+void myInterruptHandler1(void)
+{
+	int interruptTime = millis();
+	if(interruptTime - lastInterruptTime > 500)
+	{
+	
+			hourInc(); 
+	}
+	lastInterruptTime = interruptTime;
+}
+
+void myInterruptHandler2(void)
+{
+        int interruptTime = millis();
+        if(interruptTime - lastInterruptTime > 500)
+        {
+
+                        minInc();
+        }
+        lastInterruptTime = interruptTime;
+}
+
+
 void initGPIO(void){
 	/* 
 	 * Sets GPIO using wiringPi pins. see pinout.xyz for specific wiringPi pins
@@ -72,8 +95,8 @@ void initGPIO(void){
 	
 	//Attach interrupts to Buttons
 	//Write your logic here
-	wiringPiISR(5, INT_EDGE_FALLING,hourInc);
-	wiringPiISR(30, INT_EDGE_FALLING,minInc);
+	wiringPiISR(5, INT_EDGE_FALLING,myInterruptHandler1);
+	wiringPiISR(30, INT_EDGE_FALLING,myInterruptHandler2);
 	 
 	printf("BTNS done\n");
 	printf("Setup done\n");
@@ -101,9 +124,9 @@ int main(void){
 		//Fetch the time from the RTC
 		//Write your logic here
 		
-		hours = wiringPiI2CReadReg8(RTC, HOUR_REGISTER);
-		mins = wiringPiI2CReadReg8(RTC,MIN_REGISTER);
-		secs = wiringPiI2CReadReg8(RTC, SEC_REGISTER);
+		hours = hexCompensation(wiringPiI2CReadReg8(RTC, HOUR_REGISTER));
+		mins = hexCompensation(wiringPiI2CReadReg8(RTC,MIN_REGISTER));
+		secs = hexCompensation(wiringPiI2CReadReg8(RTC, SEC_REGISTER));
 				
 		//Toggle Seconds LED
 		//Write your logic here
@@ -208,11 +231,12 @@ void hourInc(void){
 		//Fetch RTC Time
 		//Increase hours by 1, ensuring not to overflow
 		//Write hours back to the RTC
-		hours = wiringPiI2CReadReg8(RTC, HOUR_REGISTER);
+		hours = hexCompensation(wiringPiI2CReadReg8(RTC, HOUR_REGISTER));
 		hours++;
-		if(hours > 23){hours = 0;}
-		wiringPiI2CWriteReg8(RTC, HOUR_REGISTER, hours);
-		printf("HOURS - %d",hours);   
+		if(hours > 23){
+			hours = 0;
+		}
+		wiringPiI2CWriteReg8(RTC, HOUR_REGISTER, decCompensation(hours));   
 	}
 	lastInterruptTime = interruptTime;
 }
@@ -231,13 +255,15 @@ void minInc(void){
 		//Fetch RTC Time
 		//Increase minutes by 1, ensuring not to overflow
 		//Write minutes back to the RTC
-		mins = wiringPiI2CReadReg8(RTC, MIN_REGISTER);
-		hours = wiringPiI2CReadReg8 (RTC, HOUR_REGISTER);
+		mins = hexCompensation(wiringPiI2CReadReg8(RTC, MIN_REGISTER));
+		hours = hexCompensation(wiringPiI2CReadReg8 (RTC, HOUR_REGISTER));
 		mins++;
-		if(mins == 60) { mins = 0; hours++;};
-		wiringPiI2CWriteReg8 (RTC, HOUR_REGISTER, hours);
-		wiringPiI2CWriteReg8 (RTC, MIN_REGISTER, mins);
-		printf("MINS-%d",mins);  
+		if(mins == 60) {
+			mins = 0;
+			hours++;
+		};
+		wiringPiI2CWriteReg8 (RTC, HOUR_REGISTER, decCompensation(hours));
+		wiringPiI2CWriteReg8 (RTC, MIN_REGISTER, decCompensation(mins));  
 	}
 	lastInterruptTime = interruptTime;
 }
